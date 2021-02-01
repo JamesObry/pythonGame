@@ -17,7 +17,10 @@ with sq.connect("users.db") as con:
         balance INTEGER,
         rank INTEGER
     )""")
-
+    cur.execute("""CREATE TABLE IF NOT EXISTS user_rank (
+        telegram_id INTEGER PRIMARY KEY,
+        wins INTEGER
+    )""")
 
 # keyboards
 mainBoard = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
@@ -37,14 +40,23 @@ gameBoard.add(gameStone, gameScissors, gamePaper, gameRandom, gameBack)
 # start command
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.send_message(message.chat.id, 'hello', reply_markup=mainBoard)
     try:
         with sq.connect("users.db") as con:
             cur = con.cursor()
             cur.execute(f"INSERT INTO users(telegram_id, name, balance, rank) VALUES({message.chat.id}, 'Не указано', 5000, 'Новичок')")
+            cur.execute(f"INSERT INTO user_rank(telegram_id, wins) VALUES({message.chat.id}, 0)")
+            bot.send_message(message.chat.id, 'Запуск...', reply_markup=mainBoard)
     except:
-        pass
-
+        with sq.connect("users.db") as con:
+            cur = con.cursor()
+            name = cur.execute(f"SELECT name FROM users WHERE telegram_id = {message.chat.id}")
+            name = cur.fetchone()[0]
+            balance = cur.execute(f"SELECT balance FROM users WHERE telegram_id = {message.chat.id}")
+            balance = cur.fetchone()[0]
+            rank = cur.execute(f"SELECT rank FROM users WHERE telegram_id = {message.chat.id}")
+            rank = cur.fetchone()[0]
+        bot.send_message(message.chat.id, 'Привет, ты уже зарегестрирован.')
+        bot.send_message(message.chat.id, f'Профиль:\n\nИмя: {name}\nБаланс: {balance}\nСкилл: {rank}', reply_markup=mainBoard)
 # main navigation
 # game command
 @bot.message_handler(regexp='Играть')
@@ -58,8 +70,15 @@ def gamePlayStone(message):
     if botChoice == playerChoice:
         bot.send_message(message.chat.id, '=')
     elif botChoice > playerChoice:
+        with sq.connect("users.db") as con:
+            cur = con.cursor()
+            cur.execute(f"UPDATE users SET balance = balance - 500 WHERE telegram_id = {message.chat.id}")
         bot.send_message(message.chat.id, '-')
     elif botChoice < playerChoice:
+        with sq.connect("users.db") as con:
+            cur = con.cursor()
+            cur.execute(f"UPDATE users SET balance = balance + 500 WHERE telegram_id = {message.chat.id}")
+            cur.execute(f"UPDATE user_rank SET wins = wins + 1 WHERE telegram_id = {message.chat.id}")
         bot.send_message(message.chat.id, '+')
 @bot.message_handler(regexp='Ножницы')
 def gamePlayScissors(message):
@@ -68,8 +87,15 @@ def gamePlayScissors(message):
     if botChoice == playerChoice:
         bot.send_message(message.chat.id, '=')
     elif botChoice > playerChoice:
+        with sq.connect("users.db") as con:
+            cur = con.cursor()
+            cur.execute(f"UPDATE users SET balance = balance - 500 WHERE telegram_id = {message.chat.id}")
         bot.send_message(message.chat.id, '-')
     elif botChoice < playerChoice:
+        with sq.connect("users.db") as con:
+            cur = con.cursor()
+            cur.execute(f"UPDATE users SET balance = balance + 500 WHERE telegram_id = {message.chat.id}")
+            cur.execute(f"UPDATE user_rank SET wins = wins + 1 WHERE telegram_id = {message.chat.id}")
         bot.send_message(message.chat.id, '+')
 @bot.message_handler(regexp='Бумага')
 def gamePlayPaper(message):
@@ -78,8 +104,15 @@ def gamePlayPaper(message):
     if botChoice == playerChoice:
         bot.send_message(message.chat.id, '=')
     elif botChoice > playerChoice:
+        with sq.connect("users.db") as con:
+            cur = con.cursor()
+            cur.execute(f"UPDATE users SET balance = balance - 500 WHERE telegram_id = {message.chat.id}")
         bot.send_message(message.chat.id, '-')
     elif botChoice < playerChoice:
+        with sq.connect("users.db") as con:
+            cur = con.cursor()
+            cur.execute(f"UPDATE users SET balance = balance + 500 WHERE telegram_id = {message.chat.id}")
+            cur.execute(f"UPDATE user_rank SET wins = wins + 1 WHERE telegram_id = {message.chat.id}")
         bot.send_message(message.chat.id, '+')
 @bot.message_handler(regexp='Рандом')
 def gamePlayRandom(message):
@@ -88,8 +121,15 @@ def gamePlayRandom(message):
     if botChoice == playerChoice:
         bot.send_message(message.chat.id, '=')
     elif botChoice > playerChoice:
+        with sq.connect("users.db") as con:
+            cur = con.cursor()
+            cur.execute(f"UPDATE users SET balance = balance - 500 WHERE telegram_id = {message.chat.id}")
         bot.send_message(message.chat.id, '-')
     elif botChoice < playerChoice:
+        with sq.connect("users.db") as con:
+            cur = con.cursor()
+            cur.execute(f"UPDATE users SET balance = balance + 500 WHERE telegram_id = {message.chat.id}")
+            cur.execute(f"UPDATE user_rank SET wins = wins + 1 WHERE telegram_id = {message.chat.id}")
         bot.send_message(message.chat.id, '+')
 # main | CheckMyStats
 @bot.message_handler(regexp='Мой профиль')
