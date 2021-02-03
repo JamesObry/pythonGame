@@ -34,8 +34,15 @@ gameStone = types.KeyboardButton(text='Камень')
 gameScissors = types.KeyboardButton(text='Ножницы')
 gamePaper = types.KeyboardButton(text='Бумага')
 gameRandom = types.KeyboardButton(text='Рандом')
-gameBack = types.KeyboardButton(text='Назад')
+gameBack = types.KeyboardButton(text='В меню')
 gameBoard.add(gameStone, gameScissors, gamePaper, gameRandom, gameBack)
+
+myProfileBoard = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=3)
+myProfileName = types.KeyboardButton(text='Имя')
+myProfileBalance = types.KeyboardButton(text='Баланс')
+myProfileSkill = types.KeyboardButton(text='Скилл')
+myProfileBack = types.KeyboardButton(text='В меню')
+myProfileBoard.add(myProfileName, myProfileBalance, myProfileSkill, myProfileBack)
 
 # start command
 @bot.message_handler(commands=['start'])
@@ -142,6 +149,10 @@ def checkMyStats(message):
         balance = cur.fetchone()[0]
         rank = cur.execute(f"SELECT rank FROM users WHERE telegram_id = {message.chat.id}")
         rank = cur.fetchone()[0]
-    bot.send_message(message.chat.id, f'Профиль:\n\nИмя: {name}\nБаланс: {balance}\nСкилл: {rank}')
+    bot.send_message(message.chat.id, f'Профиль:\n\nИмя: {name}\nБаланс: {balance}\nСкилл: {rank}', reply_markup=myProfileBoard)
+
+@bot.message_handler(regexp='В меню')
+def back(message):
+    bot.send_message(message.chat.id, 'Мы в меню', reply_markup=mainBoard)
 
 bot.infinity_polling(True)
